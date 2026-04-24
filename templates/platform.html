@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform</title>
+</head>
+<body>
+    <h1>Welcome to the Platform!</h1>
+    <p>You are successfully logged in.</p>
+    {% if user %}
+        <p>Email: {{ user.user.email }}</p>
+    {% endif %}
+</body>
+</html>
