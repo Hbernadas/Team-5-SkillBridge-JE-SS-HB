@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBridge — Basic Info</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #333; font-size: 1.5em; font-weight: normal; margin-bottom: 6px; }
+        h2 { color: #333; font-size: 1.15em; margin-bottom: 4px; }
+        .step-note { color: #777; font-size: 0.85em; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 4px; color: #444; font-size: 0.88em; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 9px 10px; margin-bottom: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; }
+        .btn { display: inline-block; padding: 10px 22px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #388E3C; }
+        .step-bar { display: flex; align-items: center; margin-bottom: 20px; }
+        .step-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: #ddd; color: #999; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        .step-dot.active { background: #4CAF50; color: white; }
+        .step-line { flex: 1; height: 2px; background: #ddd; margin: 0 2px; }
+        .flash { color: red; font-size: 0.9em; margin-bottom: 12px; }
+        /* Avatar picker */
+        .avatar-wrap { margin-bottom: 20px; }
+        .avatar-label-text { display: block; margin-bottom: 8px; color: #444; font-size: 0.88em; font-weight: bold; }
+        .avatar-circle {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: #f0f0f0; cursor: pointer; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px dashed #ccc; transition: border-color 0.2s;
+        }
+        .avatar-circle:hover { border-color: #4CAF50; }
+        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+        .avatar-placeholder span { font-size: 0.7em; color: #aaa; }
+        .avatar-hint { font-size: 0.78em; color: #aaa; margin-top: 6px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><span class="brand">SkillBridge</span> — Profile Setup</h1>
+
+    <div class="step-bar">
+        <div class="step-dot active">1</div>
+        <div class="step-line"></div>
+        <div class="step-dot">2</div>
+        <div class="step-line"></div>
+        <div class="step-dot">3</div>
+        <div class="step-line"></div>
+        <div class="step-dot">4</div>
+        <div class="step-line"></div>
+        <div class="step-dot">5</div>
+        <div class="step-line"></div>
+        <div class="step-dot">6</div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>Step 1 of 6 — Basic Info</h2>
+        <p class="step-note">This is the only required step. Steps 2–6 are optional.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <label for="first_name">First Name *</label>
+            <input type="text" id="first_name" name="first_name" required placeholder="Jane">
+
+            <label for="last_name">Last Name *</label>
+            <input type="text" id="last_name" name="last_name" required placeholder="Smith">
+
+            <div class="avatar-wrap">
+                <span class="avatar-label-text">Profile Photo (JPG/PNG, max 2MB — optional)</span>
+                <div class="avatar-circle" id="avatarCircle" onclick="document.getElementById('profile_photo').click()">
+                    <div class="avatar-placeholder" id="avatarPlaceholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <span>Click to upload</span>
+                    </div>
+                    <img id="avatarPreview" src="" alt="Preview" style="display:none">
+                </div>
+                <span class="avatar-hint">Click the circle to choose a photo</span>
+                <input type="file" id="profile_photo" name="profile_photo" accept=".jpg,.jpeg,.png" style="display:none" onchange="previewPhoto(this)">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Continue →</button>
+        </form>
+    </div>
+</div>
+<script>
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+            document.getElementById('avatarPreview').style.display = 'block';
+            document.getElementById('avatarPlaceholder').style.display = 'none';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+</body>
+</html>

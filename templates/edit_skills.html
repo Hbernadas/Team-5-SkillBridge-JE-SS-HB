@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Skills — SkillBridge</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #333; font-size: 1.4em; font-weight: normal; margin-bottom: 4px; }
+        .back-link { color: #4CAF50; text-decoration: none; font-size: 0.9em; display: inline-block; margin-bottom: 16px; }
+        .back-link:hover { text-decoration: underline; }
+        .step-note { color: #777; font-size: 0.85em; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 4px; color: #444; font-size: 0.88em; font-weight: bold; }
+        .btn { display: inline-block; padding: 10px 22px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; text-decoration: none; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #388E3C; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .flash { color: red; font-size: 0.9em; margin-bottom: 12px; }
+        .flash.success { color: #2e7d32; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; }
+        /* Skill search */
+        .skill-search-wrap { position: relative; margin-bottom: 6px; }
+        .skill-search-wrap input[type="text"] { width: 100%; padding: 9px 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; }
+        .skill-search-wrap input[type="text"]:focus { outline: none; border-color: #4CAF50; }
+        .skill-dropdown { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 100; max-height: 220px; overflow-y: auto; display: none; }
+        .dropdown-item { padding: 9px 12px; cursor: pointer; font-size: 14px; color: #333; }
+        .dropdown-item:hover { background: #f5f5f5; color: #2e7d32; }
+        .dropdown-empty { padding: 10px 12px; font-size: 13px; color: #aaa; }
+        .selected-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 6px; min-height: 12px; }
+        .chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 12px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 16px; color: #2e7d32; font-size: 0.85em; }
+        .chip button { background: none; border: none; cursor: pointer; color: #4CAF50; font-size: 1.1em; padding: 0; line-height: 1; }
+        .chip button:hover { color: #b71c1c; }
+        .skill-counter { font-size: 0.83em; color: #888; margin-bottom: 16px; }
+        .skill-counter .count { font-weight: bold; color: #4CAF50; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{{ url_for('profile.view_profile') }}" class="back-link">← Back to Profile</a>
+    <h1>Edit <span class="brand">Skills</span></h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash success">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <p class="step-note">Search and select up to 15 skills. Click × on a chip to remove it.</p>
+
+        <form method="POST" id="skillsForm">
+            <label for="skill-search">Search Skills</label>
+            <div class="skill-search-wrap">
+                <input type="text" id="skill-search" placeholder="Type to search (e.g. Python, Communication...)" autocomplete="off">
+                <div class="skill-dropdown" id="skill-dropdown"></div>
+            </div>
+
+            <div class="selected-chips" id="selected-chips"></div>
+            <div class="skill-counter">Selected: <span class="count" id="skill-count">0</span> / 15</div>
+
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">Save Skills</button>
+                <a href="{{ url_for('profile.view_profile') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+const ALL_SKILLS = {{ all_skills | tojson }};
+const PRE_SELECTED_IDS = {{ user_skill_ids | tojson }};
+let selectedSkills = ALL_SKILLS.filter(s => PRE_SELECTED_IDS.includes(s.id));
+
+function renderChips() {
+    const container = document.getElementById('selected-chips');
+    document.querySelectorAll('input[name="skill_ids"]').forEach(el => el.remove());
+    container.innerHTML = '';
+    selectedSkills.forEach(skill => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.innerHTML = `${skill.name} <button type="button" onclick="removeSkill(${skill.id})">×</button>`;
+        container.appendChild(chip);
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'skill_ids';
+        hidden.value = skill.id;
+        container.appendChild(hidden);
+    });
+    document.getElementById('skill-count').textContent = selectedSkills.length;
+}
+
+function filterSkills(query) {
+    const dd = document.getElementById('skill-dropdown');
+    if (!query.trim()) { dd.style.display = 'none'; return; }
+    const matches = ALL_SKILLS.filter(s =>
+        s.name.toLowerCase().includes(query.toLowerCase()) &&
+        !selectedSkills.find(sel => sel.id === s.id)
+    );
+    if (!matches.length) {
+        dd.innerHTML = '<div class="dropdown-empty">No matching skills found</div>';
+    } else {
+        dd.innerHTML = matches.slice(0, 12).map(s =>
+            `<div class="dropdown-item" data-id="${s.id}" data-name="${s.name.replace(/"/g, '&quot;')}">${s.name}</div>`
+        ).join('');
+    }
+    dd.style.display = 'block';
+}
+
+function selectSkill(id, name) {
+    if (selectedSkills.length >= 15) { alert('Maximum 15 skills.'); return; }
+    selectedSkills.push({ id, name });
+    renderChips();
+    document.getElementById('skill-search').value = '';
+    document.getElementById('skill-dropdown').style.display = 'none';
+}
+
+function removeSkill(id) {
+    selectedSkills = selectedSkills.filter(s => s.id !== id);
+    renderChips();
+}
+
+document.getElementById('skill-dropdown').addEventListener('mousedown', e => {
+    const item = e.target.closest('.dropdown-item');
+    if (!item) return;
+    selectSkill(parseInt(item.dataset.id), item.dataset.name);
+});
+
+document.getElementById('skill-search').addEventListener('input', e => filterSkills(e.target.value));
+document.getElementById('skill-search').addEventListener('blur', () => {
+    setTimeout(() => { document.getElementById('skill-dropdown').style.display = 'none'; }, 150);
+});
+document.getElementById('skill-search').addEventListener('focus', e => { if (e.target.value) filterSkills(e.target.value); });
+
+document.addEventListener('DOMContentLoaded', renderChips);
+</script>
+</body>
+</html>

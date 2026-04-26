@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBridge — Experience</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #333; font-size: 1.5em; font-weight: normal; margin-bottom: 6px; }
+        h2 { color: #333; font-size: 1.15em; margin-bottom: 4px; }
+        h3 { color: #555; font-size: 0.95em; margin-bottom: 12px; border-top: 1px solid #eee; padding-top: 16px; }
+        .step-note { color: #777; font-size: 0.85em; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 4px; color: #444; font-size: 0.88em; font-weight: bold; }
+        input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 9px 10px; margin-bottom: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; }
+        textarea { resize: vertical; line-height: 1.4; }
+        select { background: white; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .checkbox-row input { width: auto; margin: 0; }
+        .checkbox-row label { margin: 0; font-weight: normal; font-size: 0.9em; }
+        .btn { display: inline-block; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; text-decoration: none; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #388E3C; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-danger { background: #e53935; color: white; padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-danger:hover { background: #b71c1c; }
+        .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .step-bar { display: flex; align-items: center; margin-bottom: 20px; }
+        .step-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: #ddd; color: #999; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        .step-dot.active { background: #4CAF50; color: white; }
+        .step-dot.done { background: #388E3C; color: white; }
+        .step-line { flex: 1; height: 2px; background: #ddd; margin: 0 2px; }
+        .step-line.done { background: #4CAF50; }
+        .flash { color: red; font-size: 0.9em; margin-bottom: 12px; }
+        .entry { border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .entry-info { flex: 1; }
+        .entry-title { font-weight: bold; color: #333; font-size: 0.95em; }
+        .entry-sub { color: #666; font-size: 0.85em; margin-top: 2px; }
+        .char-count { font-size: 0.8em; color: #888; text-align: right; margin-top: -10px; margin-bottom: 14px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><span class="brand">SkillBridge</span> — Profile Setup</h1>
+
+    <div class="step-bar">
+        <div class="step-dot done">1</div>
+        <div class="step-line done"></div>
+        <div class="step-dot done">2</div>
+        <div class="step-line done"></div>
+        <div class="step-dot active">3</div>
+        <div class="step-line"></div>
+        <div class="step-dot">4</div>
+        <div class="step-line"></div>
+        <div class="step-dot">5</div>
+        <div class="step-line"></div>
+        <div class="step-dot">6</div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>Step 3 of 6 — Experience</h2>
+        <p class="step-note">Optional — you can skip this step. Add as many entries as you like.</p>
+
+        {% if entries %}
+            {% for exp in entries %}
+            <div class="entry">
+                <div class="entry-info">
+                    <div class="entry-title">{{ exp.job_title }} at {{ exp.employer_name }}</div>
+                    <div class="entry-sub">{{ exp.job_type }} · {{ exp.city }}, {{ exp.state }}</div>
+                </div>
+                <form method="POST">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="entry_id" value="{{ exp.id }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Remove this entry?')">Remove</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <h3>Add an Experience Entry</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+
+            <div class="row-2">
+                <div>
+                    <label for="employer_name">Employer Name *</label>
+                    <input type="text" id="employer_name" name="employer_name" placeholder="Acme Corp">
+                </div>
+                <div>
+                    <label for="job_title">Job Title</label>
+                    <input type="text" id="job_title" name="job_title" placeholder="Software Engineer">
+                </div>
+            </div>
+
+            <label for="job_type">Job Type</label>
+            <select id="job_type" name="job_type">
+                <option value="">— Select —</option>
+                <option>Full-time</option>
+                <option>Part-time</option>
+                <option>Internship</option>
+                <option>Contract</option>
+                <option>Freelance</option>
+                <option>Volunteer</option>
+            </select>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="currently_working" name="currently_working" onchange="toggleEndDate('currently_working','end_date')">
+                <label for="currently_working">Currently Working Here</label>
+            </div>
+
+            <div class="row-2">
+                <div>
+                    <label for="start_date">Start Date *</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <div>
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+            </div>
+
+            <div class="row-2">
+                <div>
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" placeholder="Portland">
+                </div>
+                <div>
+                    <label for="state">State</label>
+                    <select id="state" name="state">
+                        <option value="">— Select —</option>
+                        {% for s in states %}
+                        <option>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" maxlength="500" placeholder="Key responsibilities and achievements..." oninput="updateCount(this,'desc-count',500)"></textarea>
+            <div class="char-count"><span id="desc-count">0</span> / 500</div>
+
+            <button type="submit" class="btn btn-primary">+ Add Entry</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <form method="POST" class="btn-row">
+            <button type="submit" name="action" value="skip" class="btn btn-secondary">Skip Step</button>
+            <button type="submit" name="action" value="next" class="btn btn-primary">Next Step →</button>
+        </form>
+        <p style="font-size:0.8em;color:#aaa;margin-top:8px">Any entries added above are already saved.</p>
+    </div>
+</div>
+<script>
+function toggleEndDate(cbId, edId) {
+    const cb = document.getElementById(cbId);
+    const ed = document.getElementById(edId);
+    ed.disabled = cb.checked;
+    if (cb.checked) ed.value = '';
+}
+function updateCount(el, countId, max) {
+    document.getElementById(countId).textContent = el.value.length;
+}
+</script>
+</body>
+</html>

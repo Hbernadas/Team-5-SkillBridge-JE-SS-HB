@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Projects — SkillBridge</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #333; font-size: 1.4em; font-weight: normal; margin-bottom: 4px; }
+        h2 { color: #333; font-size: 1.05em; margin-bottom: 14px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .back-link { color: #4CAF50; text-decoration: none; font-size: 0.9em; display: inline-block; margin-bottom: 16px; }
+        .back-link:hover { text-decoration: underline; }
+        label { display: block; margin-bottom: 4px; color: #444; font-size: 0.88em; font-weight: bold; }
+        input[type="text"], input[type="url"], input[type="date"], textarea { width: 100%; padding: 9px 10px; margin-bottom: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; }
+        textarea { resize: vertical; line-height: 1.4; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+        .checkbox-row input { width: auto; margin: 0; }
+        .checkbox-row label { margin: 0; font-weight: normal; font-size: 0.9em; }
+        .btn { display: inline-block; padding: 9px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: Arial, sans-serif; text-decoration: none; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #388E3C; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-danger { background: #e53935; color: white; padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-danger:hover { background: #b71c1c; }
+        .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .flash { color: red; font-size: 0.9em; margin-bottom: 12px; }
+        .flash.success { color: #2e7d32; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; }
+        .entry { border: 1px solid #eee; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; }
+        .entry-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .entry-info .entry-title { font-weight: bold; color: #333; font-size: 0.95em; }
+        .entry-info .entry-sub { color: #666; font-size: 0.85em; margin-top: 2px; }
+        .entry-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .editing-banner { background: #fff8e1; border: 1px solid #ffe082; border-radius: 4px; padding: 8px 12px; font-size: 0.88em; color: #795548; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{{ url_for('profile.view_profile') }}" class="back-link">← Back to Profile</a>
+    <h1>Edit <span class="brand">Projects</span></h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash success">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    {% if entries %}
+    <div class="card">
+        <h2>Your Projects</h2>
+        {% for proj in entries %}
+        <div class="entry">
+            <div class="entry-header">
+                <div class="entry-info">
+                    <div class="entry-title">{{ proj.title }}</div>
+                    <div class="entry-sub">{% if proj.role %}{{ proj.role }}{% endif %}</div>
+                </div>
+                <div class="entry-actions">
+                    <a href="{{ url_for('profile.edit_projects', entry_id=proj.id) }}" class="btn btn-secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('profile.edit_projects') }}" style="display:inline">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="entry_id" value="{{ proj.id }}">
+                        <button type="submit" class="btn-danger" onclick="return confirm('Delete this project?')">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        {% if editing %}
+        <div class="editing-banner">Editing: <strong>{{ editing.title }}</strong></div>
+        <h2>Update Project</h2>
+        {% else %}
+        <h2>Add New Project</h2>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('profile.edit_projects', entry_id=editing.id) if editing else url_for('profile.edit_projects') }}">
+            <input type="hidden" name="action" value="{{ 'update' if editing else 'add' }}">
+
+            <label for="title">Project Title *</label>
+            <input type="text" id="title" name="title" required placeholder="SkillBridge App"
+                   value="{{ editing.title if editing else '' }}">
+
+            <label for="role">Your Role (optional)</label>
+            <input type="text" id="role" name="role" placeholder="Lead Developer"
+                   value="{{ editing.role if editing and editing.role else '' }}">
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="currently_working" name="currently_working"
+                       {% if editing and editing.currently_working %}checked{% endif %}
+                       onchange="toggleEndDate('currently_working','end_date')">
+                <label for="currently_working">Currently Working on This</label>
+            </div>
+
+            <div class="row-2">
+                <div>
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date"
+                           value="{{ editing.start_date if editing and editing.start_date else '' }}">
+                </div>
+                <div>
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date"
+                           {% if editing and editing.currently_working %}disabled{% endif %}
+                           value="{{ editing.end_date if editing and editing.end_date else '' }}">
+                </div>
+            </div>
+
+            <label for="url">Project URL (optional)</label>
+            <input type="url" id="url" name="url" placeholder="https://github.com/you/project"
+                   value="{{ editing.url if editing and editing.url else '' }}">
+
+            <label for="description">Description (optional)</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="What the project does and your contributions...">{{ editing.description if editing and editing.description else '' }}</textarea>
+
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">{{ 'Update Project' if editing else 'Add Project' }}</button>
+                {% if editing %}
+                <a href="{{ url_for('profile.edit_projects') }}" class="btn btn-secondary">Cancel Edit</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function toggleEndDate(cbId, edId) {
+    const cb = document.getElementById(cbId);
+    const ed = document.getElementById(edId);
+    ed.disabled = cb.checked;
+    if (cb.checked) ed.value = '';
+}
+</script>
+</body>
+</html>

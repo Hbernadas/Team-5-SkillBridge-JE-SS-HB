@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.first_name }} {{ profile.last_name }} — SkillBridge</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 780px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .section-header h2 { margin: 0; color: #333; font-size: 1.1em; }
+        /* Profile header */
+        .profile-top { display: flex; align-items: center; gap: 20px; }
+        .profile-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
+        .profile-initials { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: bold; flex-shrink: 0; }
+        .profile-top-info h1 { font-size: 1.4em; color: #333; margin: 0 0 4px; }
+        .profile-top-info p { color: #777; margin: 0; font-size: 0.9em; }
+        .profile-top-actions { margin-top: 14px; }
+        /* Entries */
+        .entry { border: 1px solid #eee; border-radius: 6px; padding: 14px 16px; margin-bottom: 12px; }
+        .entry:last-child { margin-bottom: 0; }
+        .entry-title { font-weight: bold; color: #333; font-size: 0.97em; margin-bottom: 2px; }
+        .entry-sub { color: #555; font-size: 0.88em; margin-bottom: 2px; }
+        .entry-dates { color: #888; font-size: 0.83em; margin-bottom: 4px; }
+        .entry-desc { color: #555; font-size: 0.88em; margin-top: 6px; line-height: 1.4; }
+        .entry-link { color: #4CAF50; font-size: 0.85em; text-decoration: none; }
+        .entry-link:hover { text-decoration: underline; }
+        /* Skills tags */
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { display: inline-block; padding: 5px 12px; border-radius: 16px; background: #e8f5e9; color: #2e7d32; font-size: 0.85em; border: 1px solid #a5d6a7; }
+        /* Social links */
+        .social-link { display: inline-flex; align-items: center; gap: 6px; color: #4CAF50; text-decoration: none; font-size: 0.9em; margin-right: 16px; }
+        .social-link:hover { text-decoration: underline; }
+        /* Empty state */
+        .empty-state { color: #bbb; font-style: italic; font-size: 0.9em; padding: 8px 0; }
+        /* Buttons */
+        .btn { display: inline-block; padding: 7px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: Arial, sans-serif; text-decoration: none; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        /* Flash */
+        .flash { color: #2e7d32; font-size: 0.9em; background: #e8f5e9; padding: 10px 14px; border-radius: 4px; margin-bottom: 16px; }
+        .flash.error { color: red; background: #ffeaea; }
+        /* Nav */
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-bar a { color: #4CAF50; text-decoration: none; font-size: 0.9em; }
+        .nav-bar a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav-bar">
+        <span style="font-weight:bold;color:#4CAF50;">SkillBridge</span>
+        <a href="{{ url_for('login.login') }}">Sign Out</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <!-- Basic Info -->
+    <div class="card">
+        <div class="profile-top">
+            {% if profile.profile_photo_url %}
+                <img class="profile-photo" src="{{ profile.profile_photo_url }}" alt="Profile Photo">
+            {% else %}
+                <div class="profile-initials">{{ (profile.first_name or '?')[0].upper() }}</div>
+            {% endif %}
+            <div class="profile-top-info">
+                <h1>{{ profile.first_name }} {{ profile.last_name }}</h1>
+                <p>{{ email }}</p>
+            </div>
+        </div>
+        <div class="profile-top-actions">
+            <a href="{{ url_for('profile.edit_basic') }}" class="btn btn-secondary">Edit Basic Info</a>
+        </div>
+    </div>
+
+    <!-- Education -->
+    <div class="card">
+        <div class="section-header">
+            <h2>Education</h2>
+            <a href="{{ url_for('profile.edit_education') }}" class="btn btn-secondary">Edit</a>
+        </div>
+        {% if education %}
+            {% for edu in education %}
+            <div class="entry">
+                <div class="entry-title">{{ edu.school_name }}</div>
+                <div class="entry-sub">{{ edu.education_level }}{% if edu.area_of_study %} · {{ edu.area_of_study }}{% endif %}</div>
+                <div class="entry-dates">
+                    {{ edu.start_date | fmt_date }}
+                    {% if edu.currently_attending %} — Present
+                    {% elif edu.end_date %} — {{ edu.end_date | fmt_date }}
+                    {% endif %}
+                </div>
+                {% if edu.description %}<div class="entry-desc">{{ edu.description }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty-state">No education added yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Experience -->
+    <div class="card">
+        <div class="section-header">
+            <h2>Experience</h2>
+            <a href="{{ url_for('profile.edit_experience') }}" class="btn btn-secondary">Edit</a>
+        </div>
+        {% if experience %}
+            {% for exp in experience %}
+            <div class="entry">
+                <div class="entry-title">{{ exp.job_title }}</div>
+                <div class="entry-sub">{{ exp.employer_name }} · {{ exp.job_type }}</div>
+                <div class="entry-dates">
+                    {{ exp.start_date | fmt_date }}
+                    {% if exp.currently_working %} — Present
+                    {% elif exp.end_date %} — {{ exp.end_date | fmt_date }}
+                    {% endif %}
+                    · {{ exp.city }}, {{ exp.state }}
+                </div>
+                {% if exp.description %}<div class="entry-desc">{{ exp.description }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty-state">No experience added yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Skills -->
+    <div class="card">
+        <div class="section-header">
+            <h2>Skills</h2>
+            <a href="{{ url_for('profile.edit_skills') }}" class="btn btn-secondary">Edit</a>
+        </div>
+        {% if skills %}
+            <div class="tags">
+                {% for skill in skills %}
+                <span class="tag">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">No skills added yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Projects -->
+    <div class="card">
+        <div class="section-header">
+            <h2>Projects</h2>
+            <a href="{{ url_for('profile.edit_projects') }}" class="btn btn-secondary">Edit</a>
+        </div>
+        {% if projects %}
+            {% for proj in projects %}
+            <div class="entry">
+                <div class="entry-title">{{ proj.title }}{% if proj.url %} — <a href="{{ proj.url }}" target="_blank" class="entry-link">View Project</a>{% endif %}</div>
+                {% if proj.role %}<div class="entry-sub">{{ proj.role }}</div>{% endif %}
+                <div class="entry-dates">
+                    {% if proj.start_date %}{{ proj.start_date | fmt_date }}{% endif %}
+                    {% if proj.currently_working %} — Present
+                    {% elif proj.end_date %} — {{ proj.end_date | fmt_date }}
+                    {% endif %}
+                </div>
+                {% if proj.description %}<div class="entry-desc">{{ proj.description }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty-state">No projects added yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Social Links -->
+    <div class="card">
+        <div class="section-header">
+            <h2>Social Links</h2>
+            <a href="{{ url_for('profile.edit_social') }}" class="btn btn-secondary">Edit</a>
+        </div>
+        {% if social.linkedin_url or social.github_url or social.other_url %}
+            <div>
+                {% if social.linkedin_url %}
+                    <a href="{{ social.linkedin_url }}" target="_blank" class="social-link">🔗 LinkedIn</a>
+                {% endif %}
+                {% if social.github_url %}
+                    <a href="{{ social.github_url }}" target="_blank" class="social-link">🔗 GitHub</a>
+                {% endif %}
+                {% if social.other_url %}
+                    <a href="{{ social.other_url }}" target="_blank" class="social-link">🔗 Portfolio</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="empty-state">No social links added yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>

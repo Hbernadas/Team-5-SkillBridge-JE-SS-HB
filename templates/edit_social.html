@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Social Links — SkillBridge</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 24px 16px; min-height: 100vh; }
+        .container { max-width: 640px; margin: 0 auto; }
+        .brand { color: #4CAF50; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #333; font-size: 1.4em; font-weight: normal; margin-bottom: 4px; }
+        .back-link { color: #4CAF50; text-decoration: none; font-size: 0.9em; display: inline-block; margin-bottom: 16px; }
+        .back-link:hover { text-decoration: underline; }
+        label { display: block; margin-bottom: 4px; color: #444; font-size: 0.88em; font-weight: bold; }
+        input[type="url"] { width: 100%; padding: 9px 10px; margin-bottom: 14px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px; }
+        .btn { display: inline-block; padding: 10px 22px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; text-decoration: none; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #388E3C; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .flash { color: red; font-size: 0.9em; margin-bottom: 12px; }
+        .flash.success { color: #2e7d32; background: #e8f5e9; padding: 8px 12px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{{ url_for('profile.view_profile') }}" class="back-link">← Back to Profile</a>
+    <h1>Edit <span class="brand">Social Links</span></h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<p class="flash success">{{ msg }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <form method="POST">
+            <label for="linkedin_url">LinkedIn URL</label>
+            <input type="url" id="linkedin_url" name="linkedin_url"
+                   placeholder="https://linkedin.com/in/yourname"
+                   value="{{ social.linkedin_url or '' }}">
+
+            <label for="github_url">GitHub URL</label>
+            <input type="url" id="github_url" name="github_url"
+                   placeholder="https://github.com/yourname"
+                   value="{{ social.github_url or '' }}">
+
+            <label for="other_url">Other URL (portfolio, personal site, etc.)</label>
+            <input type="url" id="other_url" name="other_url"
+                   placeholder="https://yourportfolio.com"
+                   value="{{ social.other_url or '' }}">
+
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ url_for('profile.view_profile') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
