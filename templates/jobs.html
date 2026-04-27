@@ -1,0 +1,91 @@
+{% extends "shell.html" %}
+
+{% block title %}Jobs — SkillBridge{% endblock %}
+{% block topbar_title %}Jobs{% endblock %}
+
+{% block extra_head %}
+<style>
+    .search-bar {
+        display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    .search-bar input[type="text"] {
+        flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 4px;
+        font-family: Arial, sans-serif; font-size: 14px; background: white;
+    }
+    .search-bar input[type="text"]:focus { outline: none; border-color: #4CAF50; }
+    .search-bar button {
+        padding: 10px 20px; background: #4CAF50; color: white; border: none;
+        border-radius: 4px; cursor: pointer; font-family: Arial, sans-serif; font-size: 14px;
+    }
+    .search-bar button:hover { background: #388E3C; }
+
+    .results-note { font-size: 0.85em; color: #777; margin-bottom: 16px; }
+    .results-note strong { color: #333; }
+
+    .job-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .job-row {
+        background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 18px 20px; text-decoration: none; color: inherit; display: block;
+        transition: box-shadow 0.15s;
+    }
+    .job-row:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.14); }
+
+    .job-row-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+    .job-title { font-size: 1em; font-weight: bold; color: #222; margin-bottom: 2px; }
+    .job-title.visited { color: #7c4dff; }
+    .job-company { font-size: 0.85em; color: #666; }
+    .job-salary { font-size: 0.88em; color: #4CAF50; font-weight: bold; white-space: nowrap; }
+
+    .job-row-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .meta-chip { background: #f5f5f5; border-radius: 12px; padding: 3px 9px; font-size: 0.8em; color: #555; }
+    .deadline-chip { background: #fff8e1; color: #f57c00; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #aaa; font-size: 0.95em; }
+    .empty-state strong { color: #555; }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="GET" action="{{ url_for('jobs.jobs_list') }}" class="search-bar">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by title, company, or location…" autofocus>
+    <button type="submit">Search</button>
+</form>
+
+{% if q %}
+    <p class="results-note">
+        {% if jobs %}
+            {{ jobs|length }} result{{ 's' if jobs|length != 1 }} for <strong>"{{ q }}"</strong>
+        {% else %}
+            No jobs found for <strong>"{{ q }}"</strong>
+        {% endif %}
+    </p>
+{% endif %}
+
+{% if jobs %}
+<div class="job-list">
+    {% for job in jobs %}
+    <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="job-row">
+        <div class="job-row-top">
+            <div>
+                <div class="job-title {% if job.id in viewed_ids %}visited{% endif %}">{{ job.title }}</div>
+                <div class="job-company">{{ job.company }}</div>
+            </div>
+            {% if job.salary_range %}
+            <div class="job-salary">{{ job.salary_range }}</div>
+            {% endif %}
+        </div>
+        <div class="job-row-meta">
+            {% if job.location %}<span class="meta-chip">{{ job.location }}</span>{% endif %}
+            {% if job.job_type %}<span class="meta-chip">{{ job.job_type }}</span>{% endif %}
+            {% if job.deadline %}<span class="meta-chip deadline-chip">Deadline {{ job.deadline }}</span>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% elif not q %}
+<div class="empty-state">No active jobs at the moment. Check back soon!</div>
+{% else %}
+<div class="empty-state">No jobs found for <strong>"{{ q }}"</strong>. Try a different search term.</div>
+{% endif %}
+{% endblock %}

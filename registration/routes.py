@@ -8,6 +8,10 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
+        if password != confirm_password:
+            flash('Passwords do not match.')
+            return redirect(url_for('registration.register'))
         try:
             # Sign up the user; Supabase handles confirmation email and credentials storage
             supabase.auth.sign_up({

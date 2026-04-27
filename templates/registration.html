@@ -109,9 +109,39 @@
             
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
-            
+
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <span id="pw-mismatch" style="display:none; color:red; font-size:0.85em; margin-top:-10px; margin-bottom:10px; display:none;">Passwords do not match.</span>
+
             <button type="submit">Register</button>
         </form>
+
+        <script>
+            const form = document.querySelector('form');
+            const pw = document.getElementById('password');
+            const cpw = document.getElementById('confirm_password');
+            const msg = document.getElementById('pw-mismatch');
+
+            function checkMatch() {
+                if (cpw.value && pw.value !== cpw.value) {
+                    msg.style.display = 'block';
+                } else {
+                    msg.style.display = 'none';
+                }
+            }
+
+            pw.addEventListener('input', checkMatch);
+            cpw.addEventListener('input', checkMatch);
+
+            form.addEventListener('submit', function(e) {
+                if (pw.value !== cpw.value) {
+                    e.preventDefault();
+                    msg.style.display = 'block';
+                    cpw.focus();
+                }
+            });
+        </script>
         
         <div class="messages">
             {% with messages = get_flashed_messages() %}

@@ -1,0 +1,164 @@
+{% extends "shell.html" %}
+
+{% block title %}{{ job.title }} — SkillBridge{% endblock %}
+{% block topbar_title %}Job Detail{% endblock %}
+
+{% block extra_head %}
+<style>
+    .back-link { color: #4CAF50; text-decoration: none; font-size: 0.88em; display: inline-block; margin-bottom: 20px; }
+    .back-link:hover { text-decoration: underline; }
+
+    .detail-layout { display: flex; gap: 20px; align-items: flex-start; }
+
+    .detail-main { flex: 1; min-width: 0; }
+    .detail-card {
+        background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 24px; margin-bottom: 16px;
+    }
+    .job-company-label { font-size: 0.8em; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .job-title-lg { font-size: 1.4em; font-weight: bold; color: #222; margin-bottom: 16px; }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .meta-item {
+        display: flex; align-items: center; gap: 5px;
+        font-size: 0.85em; color: #555; background: #f5f5f5;
+        padding: 5px 11px; border-radius: 14px;
+    }
+
+    .section-label { font-size: 0.82em; font-weight: bold; color: #4CAF50; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; margin-top: 20px; }
+    .section-label:first-child { margin-top: 0; }
+    .job-desc { font-size: 0.92em; color: #444; line-height: 1.65; }
+    .job-desc p { margin: 0 0 6px; }
+    .req-list { margin: 0; padding-left: 18px; }
+    .req-list li { font-size: 0.92em; color: #444; line-height: 1.65; margin-bottom: 4px; }
+    .divider { border: none; border-top: 1px solid #f0f0f0; margin: 18px 0; }
+
+    .detail-sidebar { width: 260px; flex-shrink: 0; }
+    .apply-card {
+        background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 22px; position: sticky; top: 76px;
+    }
+    .apply-card-title { font-size: 0.95em; font-weight: bold; color: #333; margin-bottom: 14px; }
+    .apply-meta { font-size: 0.83em; color: #666; margin-bottom: 10px; }
+    .apply-meta strong { color: #333; }
+
+    .btn-apply {
+        width: 100%; padding: 11px; background: #4CAF50; color: white;
+        border: none; border-radius: 4px; cursor: pointer;
+        font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;
+        margin-top: 6px;
+    }
+    .btn-apply:hover { background: #388E3C; }
+
+    .applied-badge {
+        display: flex; align-items: center; gap: 8px;
+        background: #e8f5e9; border: 1px solid #c8e6c9;
+        border-radius: 6px; padding: 10px 14px; margin-bottom: 10px;
+        font-size: 0.88em; color: #2e7d32; font-weight: bold;
+    }
+    .status-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 12px;
+        font-size: 0.8em; font-weight: bold;
+    }
+    .status-pending  { background: #fff8e1; color: #f57c00; }
+    .status-reviewed { background: #e3f2fd; color: #1565c0; }
+    .status-accepted { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
+
+    .submitted-date { font-size: 0.8em; color: #aaa; margin-top: 8px; }
+
+    @media (max-width: 700px) {
+        .detail-layout { flex-direction: column; }
+        .detail-sidebar { width: 100%; }
+        .apply-card { position: static; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('jobs.jobs_list') }}" class="back-link">← Back to Jobs</a>
+
+<div class="detail-layout">
+    <!-- Main info -->
+    <div class="detail-main">
+        <div class="detail-card">
+            <div class="job-company-label">{{ job.company }}</div>
+            <div class="job-title-lg">{{ job.title }}</div>
+
+            <div class="meta-row">
+                {% if job.location %}
+                <span class="meta-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ job.location }}
+                </span>
+                {% endif %}
+                {% if job.job_type %}
+                <span class="meta-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                    {{ job.job_type }}
+                </span>
+                {% endif %}
+                {% if job.salary_range %}
+                <span class="meta-item" style="color:#4CAF50; background:#f0faf0;">{{ job.salary_range }}</span>
+                {% endif %}
+                {% if job.deadline %}
+                <span class="meta-item" style="background:#fff8e1; color:#f57c00;">Deadline {{ job.deadline }}</span>
+                {% endif %}
+            </div>
+
+            {% if job.description %}
+            <div class="section-label">About This Role</div>
+            <div class="job-desc">
+                {% for line in job.description.split('\n') %}
+                    {% set l = line.strip().lstrip('- ') %}
+                    {% if l %}<p>{{ l }}</p>{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if job.requirements %}
+            <hr class="divider">
+            <div class="section-label">Requirements</div>
+            <ul class="req-list">
+                {% for line in job.requirements.split('\n') %}
+                    {% set l = line.strip().lstrip('- ') %}
+                    {% if l %}<li>{{ l }}</li>{% endif %}
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Apply panel -->
+    <aside class="detail-sidebar">
+        <div class="apply-card">
+            <div class="apply-card-title">Quick Apply</div>
+
+            {% if application %}
+                <div class="applied-badge">✓ Application Submitted</div>
+                <div class="apply-meta">Status:
+                    {% set s = application.status or 'Under Review' %}
+                    <span class="status-pill
+                        {% if s == 'Under Review' %}status-pending
+                        {% elif s == 'Accepted' %}status-accepted
+                        {% elif s == 'Denied' %}status-rejected
+                        {% endif %}">
+                        {{ s }}
+                    </span>
+                </div>
+                {% if application.submitted_at %}
+                <div class="submitted-date">Submitted {{ application.submitted_at | fmt_dt }}</div>
+                {% endif %}
+            {% else %}
+                <div class="apply-meta"><strong>{{ job.company }}</strong> is actively hiring.</div>
+                {% if job.deadline %}
+                <div class="apply-meta">Deadline: <strong>{{ job.deadline }}</strong></div>
+                {% endif %}
+                <form method="POST" action="{{ url_for('jobs.apply', job_id=job.id) }}">
+                    <button type="submit" class="btn-apply">Apply Now</button>
+                </form>
+            {% endif %}
+        </div>
+    </aside>
+</div>
+{% endblock %}

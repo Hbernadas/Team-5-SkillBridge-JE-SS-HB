@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SkillBridge{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 220px; flex-shrink: 0; background: white;
+            border-right: 1px solid #e0e0e0; position: fixed;
+            top: 0; left: 0; height: 100vh; display: flex; flex-direction: column;
+            z-index: 100;
+        }
+        .sidebar-logo {
+            padding: 20px 20px 16px;
+            font-size: 1.2em; font-weight: bold; color: #4CAF50;
+            border-bottom: 1px solid #f0f0f0; text-decoration: none; display: block;
+        }
+        .sidebar-logo span { color: #333; }
+        .sidebar-nav { flex: 1; padding: 12px 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 20px; color: #555; text-decoration: none;
+            font-size: 0.95em; border-left: 3px solid transparent;
+            transition: background 0.15s;
+        }
+        .nav-item:hover { background: #f5f5f5; color: #333; }
+        .nav-item.active { color: #4CAF50; border-left-color: #4CAF50; background: #f0faf0; font-weight: bold; }
+        .nav-icon { width: 18px; flex-shrink: 0; }
+
+        /* ── Topbar ── */
+        .topbar {
+            position: fixed; top: 0; left: 220px; right: 0; height: 56px;
+            background: white; border-bottom: 1px solid #e0e0e0;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px; z-index: 99;
+        }
+        .topbar-title { font-size: 1.1em; color: #333; font-weight: bold; }
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .avatar-wrap { position: relative; }
+        .avatar-btn {
+            width: 36px; height: 36px; border-radius: 50%; background: #4CAF50;
+            color: white; font-size: 0.85em; font-weight: bold;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-dropdown {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: white; border: 1px solid #e0e0e0; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); min-width: 160px; z-index: 200;
+        }
+        .avatar-dropdown.open { display: block; }
+        .avatar-dropdown a {
+            display: block; padding: 10px 16px; color: #333; text-decoration: none;
+            font-size: 0.9em;
+        }
+        .avatar-dropdown a:hover { background: #f5f5f5; }
+        .avatar-dropdown a:first-child { border-radius: 8px 8px 0 0; }
+        .avatar-dropdown a:last-child { border-radius: 0 0 8px 8px; color: #c62828; }
+        .avatar-dropdown a:last-child:hover { background: #fff5f5; }
+        .dropdown-divider { border: none; border-top: 1px solid #f0f0f0; margin: 0; }
+
+        /* ── Main content ── */
+        .main-wrap { margin-left: 220px; margin-top: 56px; flex: 1; padding: 28px; min-height: calc(100vh - 56px); }
+
+        /* ── Flash messages ── */
+        .flash-wrap { margin-bottom: 16px; }
+        .flash-msg {
+            padding: 10px 16px; border-radius: 6px; font-size: 0.9em; margin-bottom: 8px;
+            background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <a href="{{ url_for('jobs.explore') }}" class="sidebar-logo">Skill<span>Bridge</span></a>
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('jobs.explore') }}" class="nav-item {% if page == 'explore' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+            </svg>
+            Explore
+        </a>
+        <a href="{{ url_for('jobs.jobs_list') }}" class="nav-item {% if page == 'jobs' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            </svg>
+            Jobs
+        </a>
+        <a href="{{ url_for('jobs.my_jobs') }}" class="nav-item {% if page == 'my_jobs' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            My Applications
+        </a>
+    </nav>
+</aside>
+
+<!-- Topbar -->
+<header class="topbar">
+    <span class="topbar-title">{% block topbar_title %}SkillBridge{% endblock %}</span>
+    <div class="topbar-right">
+        <div class="avatar-wrap">
+            <button class="avatar-btn" id="avatarBtn" onclick="toggleDropdown()">
+                {% if user.profile_photo_url %}
+                    <img src="{{ user.profile_photo_url }}" alt="avatar">
+                {% else %}
+                    {{ (user.first_name or '?')[0].upper() }}
+                {% endif %}
+            </button>
+            <div class="avatar-dropdown" id="avatarDropdown">
+                <a href="{{ url_for('profile.view_profile') }}">My Profile</a>
+                <hr class="dropdown-divider">
+                <a href="{{ url_for('login.logout') }}">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Content -->
+<main class="main-wrap">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-wrap">
+            {% for msg in messages %}<div class="flash-msg">{{ msg }}</div>{% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('avatarDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('avatarBtn');
+    const dd = document.getElementById('avatarDropdown');
+    if (!wrap.contains(e.target) && !dd.contains(e.target)) {
+        dd.classList.remove('open');
+    }
+});
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

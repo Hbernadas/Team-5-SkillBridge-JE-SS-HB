@@ -1,0 +1,106 @@
+{% extends "shell.html" %}
+
+{% block title %}My Applications — SkillBridge{% endblock %}
+{% block topbar_title %}My Applications{% endblock %}
+
+{% block extra_head %}
+<style>
+    .section-heading { font-size: 1.05em; color: #333; font-weight: bold; margin-bottom: 18px; }
+
+    .apps-table-wrap {
+        background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    thead th {
+        background: #f8f9fa; text-align: left; padding: 12px 16px;
+        font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.06em;
+        color: #888; border-bottom: 1px solid #eee; font-weight: bold;
+    }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    td { padding: 14px 16px; color: #333; vertical-align: middle; }
+
+    .job-link { color: #222; text-decoration: none; font-weight: bold; }
+    .job-link:hover { color: #4CAF50; text-decoration: underline; }
+
+    .company-cell { color: #666; font-size: 0.88em; }
+    .type-chip {
+        display: inline-block; padding: 2px 8px; border-radius: 10px;
+        background: #f5f5f5; color: #555; font-size: 0.8em;
+    }
+    .date-cell { color: #aaa; font-size: 0.83em; white-space: nowrap; }
+
+    .status-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 12px;
+        font-size: 0.8em; font-weight: bold; white-space: nowrap;
+    }
+    .status-pending  { background: #fff8e1; color: #f57c00; }
+    .status-reviewed { background: #e3f2fd; color: #1565c0; }
+    .status-accepted { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
+
+    .empty-state {
+        text-align: center; padding: 60px 20px; color: #aaa; font-size: 0.95em;
+    }
+    .empty-state a { color: #4CAF50; text-decoration: none; }
+    .empty-state a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<p class="section-heading">Your Applications</p>
+
+{% if apps %}
+<div class="apps-table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Type</th>
+                <th>Submitted</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in apps %}
+            {% set j = app.jobs or {} %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('jobs.job_detail', job_id=app.job_id) }}" class="job-link">
+                        {{ j.title or 'Unknown Job' }}
+                    </a>
+                </td>
+                <td class="company-cell">{{ j.company or '—' }}</td>
+                <td>
+                    {% if j.job_type %}
+                    <span class="type-chip">{{ j.job_type }}</span>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="date-cell">
+                    {% if app.submitted_at %}{{ app.submitted_at | fmt_dt }}{% else %}—{% endif %}
+                </td>
+                <td>
+                    {% set s = app.status or 'Under Review' %}
+                    <span class="status-pill
+                        {% if s == 'Under Review' %}status-pending
+                        {% elif s == 'Accepted' %}status-accepted
+                        {% elif s == 'Denied' %}status-rejected
+                        {% endif %}">
+                        {{ s }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    You haven't applied to any jobs yet.<br><br>
+    <a href="{{ url_for('jobs.jobs_list') }}">Browse Jobs →</a>
+</div>
+{% endif %}
+{% endblock %}
